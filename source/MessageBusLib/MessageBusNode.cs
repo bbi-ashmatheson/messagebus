@@ -41,16 +41,8 @@ namespace MessageBus
             mConnectionGate.Reset();
             lock (mInstanceLock)
             {
-                if (PipeName.Contains("\\"))
-                {
-                    string serverName = base.PipeName.Substring(base.PipeName.IndexOf("\\") + 1, base.PipeName.LastIndexOf("\\") - 1);
-                    string pipeName = base.PipeName.Substring(base.PipeName.LastIndexOf("\\") + 1);
-                    mStream = new NamedPipeClientStream(serverName, pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                }
-                else
-                {
-                    mStream = new NamedPipeClientStream(".", base.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                }
+                mStream = new NamedPipeClientStream(".", base.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+
                 while (!mStream.IsConnected)
                 {
                     try
