@@ -7,10 +7,15 @@ using System.Threading;
 
 namespace MessageBus
 {
-    public class MessageBusBroker
+    /// <summary>
+    /// This is a 'service' that needs to run on at least one 'process' to create and manage the underlying transport mecanism.
+    /// ie: if the transport was HTTP, this would instantiate a web service Transport
+    /// Sice we currently only work with Named Pipes, it contains a list of NamedPipeConnections
+    /// </summary>
+    public class MessageBusService
     {
         private string PipeName { get; set; }
-        private List<NamedPipeStreamConnection> mConnections;
+        private List<NamedPipeTransport> mConnections;
 
         public bool IsActive
         {
@@ -20,10 +25,10 @@ namespace MessageBus
             }
         }
 
-        public MessageBusBroker(string name)
+        public MessageBusService(string name)
         {
             PipeName = name;
-            mConnections = new List<NamedPipeStreamConnection>();
+            mConnections = new List<NamedPipeTransport>();
         }
 
         public void Start()
@@ -38,8 +43,8 @@ namespace MessageBus
             asyncState.EndWaitForConnection(result);
             if (asyncState.IsConnected)
             {
-                NamedPipeStreamConnection item = new NamedPipeStreamConnection(asyncState, PipeName);
-                item.MessageReceived += new MessageEventHandler(Connection_MessageReceived);
+                NamedPipeTransport item = new NamedPipeTransport(asyncState, PipeName);
+                item.MessageReceived += new MessageEventHandler(OnMessageReceived);
                 lock (mConnections)
                 {
                     mConnections.Add(item);
@@ -56,13 +61,19 @@ namespace MessageBus
                 connection.SendMessage(new MessageData(command));
             }
         }
-        private void Connection_MessageReceived(object sender, MessageEventArgs args)
+        private void OnMessageReceived(object sender, MessageEventArgs args)
         {
-            Console.WriteLine(string.Format("Server received: {0}", args.Message.message.Command));
+            Console.WriteLine(string.Format("Server received: {0}", args.Message.Command));
         }
 
         public void Stop()
         {
+            foreach (var connection in mConnections)
+            {
+                connection.Disconnect();
+            }
+
+            mConnections.Clear();
         }
     }
 }

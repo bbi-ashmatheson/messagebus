@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MessageBus;
+using System;
 
 namespace client
 {
@@ -18,7 +19,7 @@ namespace client
             while (!command.Equals("exit"))
             {
                 command = Console.ReadLine();
-                clientNode.SendMessage(new MessageBus.MessageData(command));
+                clientNode.SendMessage(new MessageData(command));
             }
         }
     }

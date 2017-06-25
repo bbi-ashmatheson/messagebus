@@ -7,31 +7,36 @@ using System.Threading;
 
 namespace MessageBus
 {
-    public class MessageBusNode : NamedPipeStreamBase
+    /// <summary>
+    /// There should only be one MessageBusNode per process for best use.
+    /// </summary>
+    public class MessageBusNode
     {
         private ManualResetEvent mConnectionGate;
-        private readonly object mInstanceLock;
         private Queue<MessageData> mPendingMessages;
+        private NamedPipeTransport mTransport;
+        private readonly object mInstanceLock;
         private readonly object mQueueLock;
-        private PipeStream mStream;
+        private readonly string PipeName;
 
-        public MessageBusNode(string pipeName) : base(pipeName)
+        public MessageBusNode(string name)
         {
             mInstanceLock = new object();
             mQueueLock = new object();
             mConnectionGate = new ManualResetEvent(false);
+            PipeName = name;
         }
 
         public void Start()
         {
-            StartTryConnect();
+            ConnectToTransport();
         }
 
-        private void StartTryConnect()
+        private void ConnectToTransport()
         {
             mConnectionGate.Reset();
             Thread thread = new Thread(new ThreadStart(this.TryConnect));
-            thread.Name = "NamedPipeStreamClientConnection";
+            thread.Name = "MessageBusNode_Connection";
             thread.IsBackground = true;
             thread.Start();
         }
@@ -41,62 +46,32 @@ namespace MessageBus
             mConnectionGate.Reset();
             lock (mInstanceLock)
             {
-                mStream = new NamedPipeClientStream(".", base.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                NamedPipeClientStream connection = new NamedPipeClientStream(".", PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
 
-                while (!mStream.IsConnected)
+                while (!connection.IsConnected)
                 {
                     try
                     {
-                        ((NamedPipeClientStream)mStream).Connect(0x3e8);
+                        connection.Connect(0x3e8);
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        Console.WriteLine(string.Format("Exception caught - MessageBusNode.TryConnect: {0}", ex.Message));
                     }
                 }
-                mStream.ReadMode = PipeTransmissionMode.Message;
-                byte[] buffer = new byte[kMaxBufferSize];
-                mStream.BeginRead(buffer, 0, kMaxBufferSize, new AsyncCallback(this.EndRead), buffer);
-                mConnectionGate.Set();
-                MessageReceived += Connection_MessageReceived;
-                this.SendQueuedMessages();
-            }
-        }
 
-        private void EndRead(IAsyncResult result)
-        {
-            // this can throw an exception when it first starts up, so...
-            try
-            {
-                int length = mStream.EndRead(result);
-                byte[] asyncState = (byte[])result.AsyncState;
-                if (length > 0)
-                {
-                    byte[] destinationArray = new byte[length];
-                    Array.Copy(asyncState, 0, destinationArray, 0, length);
-                    this.OnMessageReceived(new MessageEventArgs(destinationArray));
-                }
-                lock (mInstanceLock)
-                {
-                    mStream.BeginRead(asyncState, 0, kMaxBufferSize, new AsyncCallback(this.EndRead), asyncState);
-                }
-            }
-            catch
-            {
-            }
+                // Currently not pooling buffers - may want to do this at some point.
+                connection.ReadMode = PipeTransmissionMode.Message;
 
-        }
-
-        private void EndSendMessage(IAsyncResult result)
-        {
-            lock (mInstanceLock)
-            {
-                mStream.EndWrite(result);
-                mStream.Flush();
+                mTransport = new NamedPipeTransport(connection, PipeName);
+                mTransport.MessageReceived += OnMessageReceived;
             }
         }
 
         private void EnqueMessage(MessageData message)
         {
+            // If we ever get out of .net 3.5 land, look into thread-safe collections 
+            // (https://docs.microsoft.com/en-us/dotnet/standard/collections/thread-safe/index).
             lock (mQueueLock)
             {
                 if (mPendingMessages == null)
@@ -106,6 +81,7 @@ namespace MessageBus
                 mPendingMessages.Enqueue(message);
             }
         }
+
         private void SendQueuedMessages()
         {
             lock (mQueueLock)
@@ -120,54 +96,29 @@ namespace MessageBus
                 }
             }
         }
-        public override void Disconnect()
+
+        public void SendMessage(MessageData message)
         {
             lock (mInstanceLock)
             {
-                base.Disconnect();
-                mStream.Close();
-            }
-        }
-
-        public bool IsConnected
-        {
-            get
-            {
-                lock (mInstanceLock)
+                if (mTransport.IsConnected)
                 {
-                    return mStream.IsConnected;
+                    mTransport.SendMessage(message);
+                    //byte[] messagebuffer = MessagePayload.Encode(message);
+                    //mTransport.BeginWrite(messagebuffer, 0, messagebuffer.Length, new AsyncCallback(this.EndSendMessage), null);
+                    //mTransport.Flush();
+                }
+                else
+                {
+                    EnqueMessage(message);
+                    ConnectToTransport();
                 }
             }
         }
 
-        public override void SendMessage(MessageData message)
-        {
-            if (mConnectionGate.WaitOne(100))
-            {
-                lock (mInstanceLock)
-                {
-                    if (mStream.IsConnected)
-                    {
-                        byte[] messagebuffer = message.Buffer;
-                        mStream.BeginWrite(messagebuffer, 0, messagebuffer.Length, new AsyncCallback(this.EndSendMessage), null);
-                        mStream.Flush();
-                    }
-                    else
-                    {
-                        EnqueMessage(message);
-                        StartTryConnect();
-                    }
-                }
-            }
-            else
-            {
-                EnqueMessage(message);
-            }
-        }
-
-        private void Connection_MessageReceived(object sender, MessageEventArgs args)
-        {
-            Console.WriteLine(string.Format("Client received: {0}", args.Message.message.Command));
+        private void OnMessageReceived(object sender, MessageEventArgs args)
+        {            
+            Console.WriteLine(string.Format("Client received: {0}", args.Message.Command));
         }
 
     }

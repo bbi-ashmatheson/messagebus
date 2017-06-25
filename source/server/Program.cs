@@ -14,16 +14,18 @@ namespace NamedPipesTest
         static void Main(string[] args)
         {
             Console.WriteLine("Beginning Server Startup");
-            MessageBus.MessageBusBroker broker = new MessageBus.MessageBusBroker("AshSample");
-            broker.Start();
+            MessageBus.MessageBusService service = new MessageBus.MessageBusService("AshSample");
+            service.Start();
 
             Console.WriteLine("Broker active! Enter 'exit' to quit.");
             string command = string.Empty;
             while (!command.Equals("exit"))
             {
                 command = Console.ReadLine();
-                broker.SendMessage(command);
+                service.SendMessage(command);
             }
+
+            service.Stop();
         }
     }
 }
