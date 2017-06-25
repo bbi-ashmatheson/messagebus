@@ -1,49 +1,60 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 
 namespace MessageBus
 {
+    /// <summary>
+    /// Data we transmit between busses
+    /// </summary>
     [Serializable]
-    public struct MessagePayload
-    {
-        public int Length;
-        public string Command;
-    }
-
     public class MessageData
     {
-        public MessagePayload message;
+        private const string kNoArgs = "";
+        public int Version = 1;
+        public string Command;
+        public string Args;
 
-        public byte[] Buffer
+        public MessageData(string command, string args = kNoArgs)
         {
-            get
-            {
-                BinaryFormatter formatter = new BinaryFormatter();
-                MemoryStream memoryStream = new MemoryStream();
-                formatter.Serialize(memoryStream, message);
-                return memoryStream.ToArray();
-            }
-        }
-
-        public MessageData(string command)
-        {
-            message = new MessagePayload
-            {
-                Length = command.Length,
-                Command = command
-            };
-        }
-
-        public MessageData(byte[] buffer)
-        {
-            BinaryFormatter formatter = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream(buffer);
-            message = (MessagePayload)formatter.Deserialize(ms);
+            Command = command;
+            Args = args;
         }
     }
+
+    /// <summary>
+    /// Wrapper object for generating a Payload to be transmitted across the wire.
+    /// </summary>
+    public class MessageSerializer
+    {
+        public static byte[] Encode(MessageData data)
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            MemoryStream memoryStream = new MemoryStream();
+            formatter.Serialize(memoryStream, data);
+
+            return memoryStream.ToArray();
+        }
+
+        public static MessageData Decode(byte[] data)
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream(data);
+            MessageData message = (MessageData)formatter.Deserialize(ms);
+
+            return message;
+        }
+    }
+
+    public class MessageEventArgs
+    {
+        public readonly MessageData Message;
+
+        public MessageEventArgs(byte[] buffer)
+        {
+            Message = MessageSerializer.Decode(buffer);
+        }
+    }
+
+    public delegate void MessageEventHandler(object sender, MessageEventArgs args);
 }

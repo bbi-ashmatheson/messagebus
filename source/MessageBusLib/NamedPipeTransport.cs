@@ -1,19 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO.Pipes;
-using System.Linq;
-using System.Text;
 
 namespace MessageBus
 {
-    public class NamedPipeStreamConnection : NamedPipeStreamBase
+    /// <summary>
+    /// Transport layer for named pipes
+    /// </summary>
+    public class NamedPipeTransport : ConnectionBase
     {
-        private readonly object mInstanceLock;
+        private readonly object mNamedPipeLock;
         private PipeStream mStream;
 
-        public NamedPipeStreamConnection(PipeStream stream, string name) : base(name)
+        public NamedPipeTransport(PipeStream stream, string name) : base(name)
         {
-            mInstanceLock = new object();
+            mNamedPipeLock = new object();
             mStream = stream;
             byte[] buffer = new byte[kMaxBufferSize];
             mStream.BeginRead(buffer, 0, kMaxBufferSize, new AsyncCallback(EndRead), buffer);
@@ -21,14 +21,31 @@ namespace MessageBus
 
         public override void SendMessage(MessageData message)
         {
-            byte[] buffer = message.Buffer;
-            lock (mInstanceLock)
+            byte[] buffer = MessageSerializer.Encode(message);
+            lock (mNamedPipeLock)
             {
                 if (mStream.IsConnected)
                 {
                     mStream.BeginWrite(buffer, 0, buffer.Length, new AsyncCallback(EndSendMessage), null);
                 }
             }
+        }
+
+        public bool IsConnected
+        {
+            get
+            {
+                lock (mNamedPipeLock)
+                {
+                    return mStream.IsConnected;
+                }
+            }
+        }
+
+        public override void Disconnect()
+        {
+            mStream.Close();
+            base.Disconnect();
         }
 
         private void EndRead(IAsyncResult result)
@@ -41,7 +58,7 @@ namespace MessageBus
                 Array.Copy(asyncState, 0, destinationArray, 0, length);
                 OnMessageReceived(new MessageEventArgs(destinationArray));
             }
-            lock (mInstanceLock)
+            lock (mNamedPipeLock)
             {
                 mStream.BeginRead(asyncState, 0, kMaxBufferSize, new AsyncCallback(EndRead), asyncState);
             }
@@ -49,7 +66,7 @@ namespace MessageBus
 
         private void EndSendMessage(IAsyncResult result)
         {
-            lock (mInstanceLock)
+            lock (mNamedPipeLock)
             {
                 mStream.EndWrite(result);
                 mStream.Flush();

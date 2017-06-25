@@ -39,11 +39,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IMessageBusChannel.cs" />
     <Compile Include="MessageData.cs" />
-    <Compile Include="MessageBusBroker.cs" />
+    <Compile Include="MessageBusService.cs" />
     <Compile Include="MessageBusNode.cs" />
-    <Compile Include="NamedPipeStreamBase.cs" />
-    <Compile Include="NamedPipeStreamConnection.cs" />
+    <Compile Include="ConnectionBase.cs" />
+    <Compile Include="NamedPipeTransport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
