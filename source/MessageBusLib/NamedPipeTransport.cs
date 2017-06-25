@@ -3,6 +3,9 @@ using System.IO.Pipes;
 
 namespace MessageBus
 {
+    /// <summary>
+    /// Transport layer for named pipes
+    /// </summary>
     public class NamedPipeTransport : ConnectionBase
     {
         private readonly object mNamedPipeLock;
@@ -18,7 +21,7 @@ namespace MessageBus
 
         public override void SendMessage(MessageData message)
         {
-            byte[] buffer = MessagePayload.Encode(message);
+            byte[] buffer = MessageSerializer.Encode(message);
             lock (mNamedPipeLock)
             {
                 if (mStream.IsConnected)

@@ -25,22 +25,23 @@ namespace MessageBus
     /// <summary>
     /// Wrapper object for generating a Payload to be transmitted across the wire.
     /// </summary>
-    public class MessagePayload
+    public class MessageSerializer
     {
         public static byte[] Encode(MessageData data)
         {
             BinaryFormatter formatter = new BinaryFormatter();
             MemoryStream memoryStream = new MemoryStream();
             formatter.Serialize(memoryStream, data);
+
             return memoryStream.ToArray();
         }
 
         public static MessageData Decode(byte[] data)
         {
             BinaryFormatter formatter = new BinaryFormatter();
-            MessageData message;
             MemoryStream ms = new MemoryStream(data);
-            message = (MessageData)formatter.Deserialize(ms);
+            MessageData message = (MessageData)formatter.Deserialize(ms);
+
             return message;
         }
     }
@@ -51,7 +52,7 @@ namespace MessageBus
 
         public MessageEventArgs(byte[] buffer)
         {
-            Message = MessagePayload.Decode(buffer);
+            Message = MessageSerializer.Decode(buffer);
         }
     }
 

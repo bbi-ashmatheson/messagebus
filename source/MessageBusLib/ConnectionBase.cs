@@ -64,7 +64,6 @@ namespace MessageBus
             }
         }
 
-
         public void Dispose()
         {
             Dispose(true);

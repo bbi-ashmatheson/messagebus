@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO.Pipes;
-using System.Net;
-using System.Text;
 using System.Threading;
 
 namespace MessageBus
@@ -14,7 +12,10 @@ namespace MessageBus
     {
         private ManualResetEvent mConnectionGate;
         private Queue<MessageData> mPendingMessages;
+        private List<IMessageBusChannel> mChannels;
         private NamedPipeTransport mTransport;
+        private Thread mQueuedMessageWorker;
+
         private readonly object mInstanceLock;
         private readonly object mQueueLock;
         private readonly string PipeName;
@@ -24,6 +25,7 @@ namespace MessageBus
             mInstanceLock = new object();
             mQueueLock = new object();
             mConnectionGate = new ManualResetEvent(false);
+            mChannels = new List<IMessageBusChannel>();
             PipeName = name;
         }
 
@@ -32,13 +34,48 @@ namespace MessageBus
             ConnectToTransport();
         }
 
+        public void Stop()
+        {
+            lock (mQueueLock)
+            {
+                if (mPendingMessages.Count > 0)
+                {
+                    Console.WriteLine("MessageBusNode shutting down. {0} messages outstanding", mPendingMessages.Count);
+                    mPendingMessages.Clear();
+                }
+            }
+        }
+
+        public void SendMessage(MessageData message)
+        {
+            lock (mInstanceLock)
+            {
+                if (mTransport.IsConnected)
+                {
+                    mTransport.SendMessage(message);
+                }
+                else
+                {
+                    EnqueMessage(message);
+                    ConnectToTransport();
+                }
+            }
+        }
+
+        public void AddChannel(IMessageBusChannel channel)
+        {
+            mChannels.Add(channel);
+        }
+
         private void ConnectToTransport()
         {
             mConnectionGate.Reset();
-            Thread thread = new Thread(new ThreadStart(this.TryConnect));
+            Thread thread = new Thread(new ThreadStart(TryConnect));
             thread.Name = "MessageBusNode_Connection";
             thread.IsBackground = true;
             thread.Start();
+
+            mQueuedMessageWorker = new Thread(QueueWorker);
         }
 
         private void TryConnect()
@@ -65,6 +102,15 @@ namespace MessageBus
 
                 mTransport = new NamedPipeTransport(connection, PipeName);
                 mTransport.MessageReceived += OnMessageReceived;
+            }
+        }
+
+        private void QueueWorker()
+        {
+            while (mTransport.IsConnected)
+            {
+                SendQueuedMessages();
+                Thread.Sleep(100);
             }
         }
 
@@ -97,29 +143,13 @@ namespace MessageBus
             }
         }
 
-        public void SendMessage(MessageData message)
-        {
-            lock (mInstanceLock)
-            {
-                if (mTransport.IsConnected)
-                {
-                    mTransport.SendMessage(message);
-                    //byte[] messagebuffer = MessagePayload.Encode(message);
-                    //mTransport.BeginWrite(messagebuffer, 0, messagebuffer.Length, new AsyncCallback(this.EndSendMessage), null);
-                    //mTransport.Flush();
-                }
-                else
-                {
-                    EnqueMessage(message);
-                    ConnectToTransport();
-                }
-            }
-        }
-
         private void OnMessageReceived(object sender, MessageEventArgs args)
-        {            
+        {
+            foreach (var item in mChannels)
+            {
+                item.DoCommand(args.Message);
+            }
             Console.WriteLine(string.Format("Client received: {0}", args.Message.Command));
         }
-
     }
 }

@@ -13,6 +13,7 @@ namespace client
         {
             Console.WriteLine("Beginning Client Startup");
             MessageBus.MessageBusNode clientNode = new MessageBus.MessageBusNode("AshSample");
+            clientNode.AddChannel(new TestChannel());
             clientNode.Start();
             Console.WriteLine("Client active! Enter 'exit' to quit.");
             string command = string.Empty;
@@ -21,6 +22,22 @@ namespace client
                 command = Console.ReadLine();
                 clientNode.SendMessage(new MessageData(command));
             }
+        }
+    }
+
+    public class TestChannel : IMessageBusChannel
+    {
+        public string Name
+        {
+            get
+            {
+                return "TestChannel";
+            }
+        }
+
+        public void DoCommand(MessageData message)
+        {
+            Console.WriteLine(string.Format("TestChannel Handled Command {0}:{1}", message.Command, message.Args));
         }
     }
 }

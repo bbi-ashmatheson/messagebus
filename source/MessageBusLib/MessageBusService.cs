@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO.Pipes;
-using System.Net;
-using System.Text;
-using System.Threading;
 
 namespace MessageBus
 {
@@ -37,6 +34,24 @@ namespace MessageBus
             stream.BeginWaitForConnection(new AsyncCallback(ClientConnected), stream);
         }
 
+        public void SendMessage(string command)
+        {
+            foreach (var connection in mConnections)
+            {
+                connection.SendMessage(new MessageData(command));
+            }
+        }
+
+        public void Stop()
+        {
+            foreach (var connection in mConnections)
+            {
+                connection.Disconnect();
+            }
+
+            mConnections.Clear();
+        }
+
         private void ClientConnected(IAsyncResult result)
         {
             NamedPipeServerStream asyncState = result.AsyncState as NamedPipeServerStream;
@@ -54,26 +69,9 @@ namespace MessageBus
             state.BeginWaitForConnection(new AsyncCallback(this.ClientConnected), state);
         }
 
-        public void SendMessage(string command)
-        {
-            foreach (var connection in mConnections)
-            {
-                connection.SendMessage(new MessageData(command));
-            }
-        }
         private void OnMessageReceived(object sender, MessageEventArgs args)
         {
             Console.WriteLine(string.Format("Server received: {0}", args.Message.Command));
-        }
-
-        public void Stop()
-        {
-            foreach (var connection in mConnections)
-            {
-                connection.Disconnect();
-            }
-
-            mConnections.Clear();
         }
     }
 }
