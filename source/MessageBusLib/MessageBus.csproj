@@ -39,7 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IMessageBusChannel.cs" />
+    <Compile Include="IMessageBusReceiver.cs" />
     <Compile Include="MessageData.cs" />
     <Compile Include="MessageBusService.cs" />
     <Compile Include="MessageBusNode.cs" />

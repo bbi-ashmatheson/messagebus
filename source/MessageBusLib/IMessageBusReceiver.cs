@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MessageBus
 {
-    public interface IMessageBusChannel
+    public interface IMessageBusReceiver
     {
         string Name { get; }
 
