@@ -8,30 +8,25 @@ namespace MessageBus
     public class Asynchronus_NamedPipe_Server
     {
         public readonly string pipe_address;
-        private NamedPipeServerStream namedPipeServerStream;
-        private string Server_Message;
-
-
 
         public delegate void ASYNC_pipe_status_callback(string message);
 
+        private NamedPipeServerStream namedPipeServerStream;
+        private string Server_Message;
 
         private byte[] read_buffer = new byte[1024];
         private byte[] write_buffer = new byte[1024];
-
 
         public Asynchronus_NamedPipe_Server(string pipe_address)
         {
             try
             {
-
                 this.pipe_address = pipe_address;
                 namedPipeServerStream = new NamedPipeServerStream(this.pipe_address, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
                 Console.WriteLine("Connecting to Client...");
                 namedPipeServerStream.WaitForConnection();
                 Console.WriteLine("Connected to Client");
                 Read_from_Client_Async();
-
             }
             catch (Exception oEX)
             {
@@ -53,7 +48,6 @@ namespace MessageBus
                     ASCIIEncoding.ASCII.GetBytes(message).CopyTo(write_buffer, 0);
 
                     namedPipeServerStream.BeginWrite(write_buffer, 0, write_buffer.Length, new AsyncCallback(Async_Write_Completed), 2);
-
                 }
                 else
                 {
@@ -100,9 +94,7 @@ namespace MessageBus
         private void Async_Write_Completed(IAsyncResult result)
         {
             namedPipeServerStream.EndWrite(result);
-            Debug.WriteLine("Written To Client => " + ASCIIEncoding.ASCII.GetString(write_buffer));
-
-
+            Console.WriteLine("Written To Client => " + ASCIIEncoding.ASCII.GetString(write_buffer));
         }
 
         public Boolean Is_connected_to_server()
@@ -120,7 +112,7 @@ namespace MessageBus
             namedPipeServerStream.Close();
             namedPipeServerStream.Dispose();
 
-            Debug.WriteLine(" Pipe Closed");
+            Console.WriteLine(" Pipe Closed");
         }
     }
 }

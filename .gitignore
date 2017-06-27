@@ -286,3 +286,8 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+# Additional Unity3d files
+UIWork/Temp/
+UIWork/Library/ShaderCache/
+UIWork/Library/metadata/

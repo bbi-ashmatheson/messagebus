@@ -8,15 +8,10 @@ namespace MessageBus
     public class Asynchronus_NamedPipe_Client
     {
         public readonly string pipe_address;
-        private NamedPipeClientStream clientStream;
-
         public bool filter_message = true;
 
-
-
+        private NamedPipeClientStream clientStream;
         private string Server_Message = null;
-
-
 
 
         public event ASYNC_pipe_status_callback ASYNC_external_Write_Completed;
@@ -51,14 +46,11 @@ namespace MessageBus
                 {
                     Console.WriteLine("Could NOT connect to Server");
                 }
-
             }
             catch (Exception oEX)
             {
                 Console.WriteLine("Application Pipe Error: " + oEX.Message);
             }
-
-
         }
 
 
@@ -69,11 +61,9 @@ namespace MessageBus
             {
                 if (clientStream.CanWrite && clientStream.IsConnected)
                 {
-
                     clientStream.WaitForPipeDrain();
                     ASCIIEncoding.ASCII.GetBytes(message).CopyTo(write_buffer, 0);
                     clientStream.BeginWrite(write_buffer, 0, write_buffer.Length, new AsyncCallback(Async_Write_Completed), 1);
-
                 }
                 else
                 {
@@ -110,7 +100,6 @@ namespace MessageBus
 
         private void Async_Read_Completed(IAsyncResult result)
         {
-
             clientStream.EndRead(result);
             Server_Message = ASCIIEncoding.ASCII.GetString(read_buffer);
             this.Server_Message.Trim();
