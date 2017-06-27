@@ -36,7 +36,7 @@ namespace client
         }
     }
 
-    public class TestChannel : IMessageBusChannel
+    public class TestChannel : IMessageBusReceiver
     {
         public string Name
         {

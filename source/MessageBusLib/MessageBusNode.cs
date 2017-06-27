@@ -12,7 +12,7 @@ namespace MessageBus
     {
         private ManualResetEvent mConnectionGate;
         private Queue<MessageData> mPendingMessages;
-        private List<IMessageBusChannel> mChannels;
+        private List<IMessageBusReceiver> mChannels;
         private NamedPipeTransport mTransport;
         private Thread mQueuedMessageWorker;
 
@@ -25,7 +25,7 @@ namespace MessageBus
             mInstanceLock = new object();
             mQueueLock = new object();
             mConnectionGate = new ManualResetEvent(false);
-            mChannels = new List<IMessageBusChannel>();
+            mChannels = new List<IMessageBusReceiver>();
             PipeName = name;
         }
 
@@ -62,7 +62,7 @@ namespace MessageBus
             }
         }
 
-        public void AddChannel(IMessageBusChannel channel)
+        public void AddChannel(IMessageBusReceiver channel)
         {
             mChannels.Add(channel);
         }
