@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.IO;
 using System.IO.Pipes;
 using System.Diagnostics;
 
@@ -39,17 +40,17 @@ namespace MessageBus
                 clientStream.Connect(1);
                 if (clientStream.IsConnected)
                 {
-                    Console.WriteLine("Connected to Server");
+                    Log("Connected to Server");
                     Read_from_Server_Async();
                 }
                 else
                 {
-                    Console.WriteLine("Could NOT connect to Server");
+                    Log("Could NOT connect to Server");
                 }
             }
             catch (Exception oEX)
             {
-                Console.WriteLine("Application Pipe Error: " + oEX.Message);
+                Log("Application Pipe Error: " + oEX.Message);
             }
         }
 
@@ -93,7 +94,7 @@ namespace MessageBus
         private void Async_Write_Completed(IAsyncResult result)
         {
             clientStream.EndWrite(result);
-            Console.WriteLine("Written To Server => " + ASCIIEncoding.ASCII.GetString(write_buffer));
+            Log("Written To Server => " + ASCIIEncoding.ASCII.GetString(write_buffer));
         }
 
 
@@ -103,8 +104,7 @@ namespace MessageBus
             clientStream.EndRead(result);
             Server_Message = ASCIIEncoding.ASCII.GetString(read_buffer);
             this.Server_Message.Trim();
-            Console.WriteLine("Received from Server => " + Server_Message);
-            Debug.WriteLine("Received from Server => " + Server_Message);
+            Log("Received from Server => " + Server_Message);
             if (clientStream.CanRead && clientStream.IsConnected)
             {
                 Read_from_Server_Async();
@@ -131,11 +131,15 @@ namespace MessageBus
                 {
                     clientStream.Close();
                     clientStream.Dispose();
-
-                    Console.WriteLine(" Pipe Closed");
+                    Log(" Pipe Closed");
                 }
             }
+        }
 
+        private void Log(string message)
+        {
+            Debug.WriteLine(message);
+            File.AppendAllText("D:\\dev\\bagofholding\\messagebus\\log.txt", message + Environment.NewLine);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace NamedPipesTest
                 do
                 {
                     asyncServer.Write_to_Client_Async("ack");
-                } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
+                } while (Console.ReadKey().Key != ConsoleKey.Escape);
             }
 
         }

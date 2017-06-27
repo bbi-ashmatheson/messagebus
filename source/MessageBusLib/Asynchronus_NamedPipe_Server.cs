@@ -22,7 +22,7 @@ namespace MessageBus
             try
             {
                 this.pipe_address = pipe_address;
-                namedPipeServerStream = new NamedPipeServerStream(this.pipe_address, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
+                namedPipeServerStream = new NamedPipeServerStream(this.pipe_address, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous|PipeOptions.WriteThrough);
                 Console.WriteLine("Connecting to Client...");
                 namedPipeServerStream.WaitForConnection();
                 Console.WriteLine("Connected to Client");
@@ -35,9 +35,6 @@ namespace MessageBus
         }
 
 
-
-
-
         public void Write_to_Client_Async(string message)
         {
             if (namedPipeServerStream != null)
@@ -48,6 +45,7 @@ namespace MessageBus
                     ASCIIEncoding.ASCII.GetBytes(message).CopyTo(write_buffer, 0);
 
                     namedPipeServerStream.BeginWrite(write_buffer, 0, write_buffer.Length, new AsyncCallback(Async_Write_Completed), 2);
+                    namedPipeServerStream.Flush();
                 }
                 else
                 {
@@ -65,7 +63,6 @@ namespace MessageBus
             {
                 if (namedPipeServerStream.CanRead && namedPipeServerStream.IsConnected)
                 {
-
                     namedPipeServerStream.BeginRead(read_buffer, 0, read_buffer.Length, new AsyncCallback(Async_Read_Completed), 1);
                 }
                 else
@@ -81,12 +78,13 @@ namespace MessageBus
         private void Async_Read_Completed(IAsyncResult result)
         {
             namedPipeServerStream.EndRead(result);
+            namedPipeServerStream.WaitForPipeDrain();
 
             this.Server_Message = ASCIIEncoding.ASCII.GetString(read_buffer);
             this.Server_Message.Trim();
             Console.WriteLine("Received from Client => " + this.Server_Message + " <=REnd");
 
-            Read_from_Client_Async();
+            // Read_from_Client_Async();
 
         }
 
@@ -94,6 +92,8 @@ namespace MessageBus
         private void Async_Write_Completed(IAsyncResult result)
         {
             namedPipeServerStream.EndWrite(result);
+            namedPipeServerStream.Flush();
+
             Console.WriteLine("Written To Client => " + ASCIIEncoding.ASCII.GetString(write_buffer));
         }
 

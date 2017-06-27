@@ -41,7 +41,6 @@
   <ItemGroup>
     <Compile Include="Asynchronus_NamedPipe_Client.cs" />
     <Compile Include="Asynchronus_NamedPipe_Server.cs" />
-    <Compile Include="IMessageBusChannel.cs" />
     <Compile Include="IMessageBusReceiver.cs" />
     <Compile Include="MessageData.cs" />
     <Compile Include="MessageBusService.cs" />
