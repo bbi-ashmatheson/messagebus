@@ -1,4 +1,5 @@
 ﻿using System;
+using MessageBus;
 
 namespace NamedPipesTest
 {
@@ -9,19 +10,29 @@ namespace NamedPipesTest
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Beginning Server Startup");
-            MessageBus.MessageBusService service = new MessageBus.MessageBusService("AshSample");
-            service.Start();
+            Console.WriteLine("Beginning Server Startup - press escape to quit");
+            // MessageBus.MessageBusService service = new MessageBus.MessageBusService("AshSample");
+            // service.Start();
+            // 
+            // Console.WriteLine("Broker active! Enter 'exit' to quit.");
+            // string command = string.Empty;
+            // while (!command.Equals("exit"))
+            // {
+            //     command = Console.ReadLine();
+            //     service.SendMessage(command);
+            // }
+            // 
+            // service.Stop();
 
-            Console.WriteLine("Broker active! Enter 'exit' to quit.");
-            string command = string.Empty;
-            while (!command.Equals("exit"))
+            Asynchronus_NamedPipe_Server asyncServer = new Asynchronus_NamedPipe_Server("AshSample");
+            while (true)
             {
-                command = Console.ReadLine();
-                service.SendMessage(command);
+                do
+                {
+                    asyncServer.Write_to_Client_Async("ack");
+                } while (Console.ReadKey(true).Key != ConsoleKey.Escape);
             }
 
-            service.Stop();
         }
     }
 }
