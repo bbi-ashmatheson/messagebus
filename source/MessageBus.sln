@@ -7,7 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "server", "server\server.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "client", "client\client.csproj", "{D4A7B4B7-903D-4BFC-8EED-7BA25F07FC5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageBusLib", "MessageBusLib\MessageBus.csproj", "{C7898DA2-5DFF-4735-A9AE-A753FEB5B9FB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageBus", "MessageBusLib\MessageBus.csproj", "{C7898DA2-5DFF-4735-A9AE-A753FEB5B9FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MMF_Server", "MMF_Server\MMF_Server.csproj", "{D9FE66FE-D596-4696-896D-B6E6E31DE251}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{C7898DA2-5DFF-4735-A9AE-A753FEB5B9FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7898DA2-5DFF-4735-A9AE-A753FEB5B9FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7898DA2-5DFF-4735-A9AE-A753FEB5B9FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9FE66FE-D596-4696-896D-B6E6E31DE251}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9FE66FE-D596-4696-896D-B6E6E31DE251}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9FE66FE-D596-4696-896D-B6E6E31DE251}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9FE66FE-D596-4696-896D-B6E6E31DE251}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

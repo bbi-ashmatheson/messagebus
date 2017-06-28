@@ -76,12 +76,26 @@
     <Reference Include="UnityEngine.HoloLens">
       <HintPath>Library\UnityAssemblies\UnityEngine.HoloLens.dll</HintPath>
     </Reference>
-    <Reference Include="MessageBus">
-      <HintPath>Assets\MessageBus.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\AsyncClient.cs" />
+    <Compile Include="Assets\Scripts\BufferReadWrite.cs" />
+    <Compile Include="Assets\Scripts\BufferWithLocks.cs" />
+    <Compile Include="Assets\Scripts\CircularBuffer.cs" />
+    <Compile Include="Assets\Scripts\FastStructure.cs" />
+    <Compile Include="Assets\Scripts\MemoryMappedFiles\MemoryMappedFile.cs" />
+    <Compile Include="Assets\Scripts\MemoryMappedFiles\MemoryMappedFileAccess.cs" />
+    <Compile Include="Assets\Scripts\MemoryMappedFiles\MemoryMappedFileRights.cs" />
+    <Compile Include="Assets\Scripts\MemoryMappedFiles\MemoryMappedView.cs" />
+    <Compile Include="Assets\Scripts\MemoryMappedFiles\MemoryMappedViewAccessor.cs" />
+    <Compile Include="Assets\Scripts\MemoryMappedFiles\SafeMemoryMappedFileHandle.cs" />
+    <Compile Include="Assets\Scripts\MemoryMappedFiles\SafeMemoryMappedViewHandle.cs" />
+    <Compile Include="Assets\Scripts\MMF_Client.cs" />
+    <Compile Include="Assets\Scripts\SharedArray.cs" />
+    <Compile Include="Assets\Scripts\SharedBuffer.cs" />
+    <Compile Include="Assets\Scripts\SharedHeader.cs" />
+    <Compile Include="Assets\Scripts\UnsafeNativeMethods.cs" />
+    <Compile Include="Assets\Scripts\Utilities\ArraySlice.cs" />
     <Compile Include="Assets\UI\LevelEditor\MainUI.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
