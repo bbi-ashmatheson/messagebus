@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,12 +25,8 @@
 //   http://www.codeproject.com/Articles/14740/Fast-IPC-Communication-Using-Shared-Memory-and-Int
 
 using System;
-using System.Collections.Generic;
-using System.IO.MemoryMappedFiles;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
-using System.Text;
 using System.Threading;
 
 namespace SharedMemory
@@ -43,17 +39,17 @@ namespace SharedMemory
     public unsafe class CircularBuffer : SharedBuffer
     {
         #region Public/Protected properties
-        
+
         /// <summary>
         /// The number of nodes within the circular linked-list
         /// </summary>
         public int NodeCount { get; private set; }
-        
+
         /// <summary>
         /// The buffer size of each node
         /// </summary>
         public int NodeBufferSize { get; private set; }
-        
+
         /// <summary>
         /// Event signaled when data has been written if the reading index has caught up to the writing index
         /// </summary>
@@ -74,7 +70,7 @@ namespace SharedMemory
                 return 0;
             }
         }
-            
+
         /// <summary>
         /// Where the linked-list nodes are located within the buffer
         /// </summary>
@@ -118,7 +114,7 @@ namespace SharedMemory
         #region Private field members
 
         private NodeHeader* _nodeHeader = null;
-        
+
         #endregion
 
         #region Structures
@@ -190,7 +186,7 @@ namespace SharedMemory
             /// Represents the offset relative to <see cref="SharedBuffer.BufferStartPtr"/> where the data for this node can be found.
             /// </summary>
             public long Offset;
-            
+
             /// <summary>
             /// Represents the index of the current node.
             /// </summary>
@@ -418,7 +414,7 @@ namespace SharedMemory
                 if (Interlocked.CompareExchange(ref node->DoneWrite, 0, 1) != 1)
                 {
                     // If we get here then another thread either another thread
-                    // has already moved the write index or we have moved forward 
+                    // has already moved the write index or we have moved forward
                     // as far as we can
                     return;
                 }
@@ -449,10 +445,10 @@ namespace SharedMemory
 
             // Copy the data
             int amount = Math.Min(source.Length - startIndex, NodeBufferSize);
-            
+
             Marshal.Copy(source, startIndex, new IntPtr(BufferStartPtr + node->Offset), amount);
             node->AmountWritten = amount;
-            
+
 
             // Writing is complete, make readable
             PostNode(node);
@@ -467,7 +463,7 @@ namespace SharedMemory
         /// <param name="startIndex">The index within the buffer to start writing from</param>
         /// <param name="timeout">The maximum number of milliseconds to wait for a node to become available for writing (default 1000ms)</param>
         /// <returns>The number of elements written</returns>
-        /// <remarks>The maximum number of elements that can be written is the minimum of the length of <paramref name="source"/> subtracted by <paramref name="startIndex"/> and <see cref="NodeBufferSize"/> divided by <code>FastStructure.SizeOf&gt;T&lt;()</code>.</remarks>        
+        /// <remarks>The maximum number of elements that can be written is the minimum of the length of <paramref name="source"/> subtracted by <paramref name="startIndex"/> and <see cref="NodeBufferSize"/> divided by <code>FastStructure.SizeOf&gt;T&lt;()</code>.</remarks>
         public virtual int Write<T>(T[] source, int startIndex = 0, int timeout = 1000)
             where T : struct
         {
@@ -522,7 +518,7 @@ namespace SharedMemory
         /// <param name="timeout">The maximum number of milliseconds to wait for a node to become available (default 1000ms)</param>
         /// <param name="length">The number of bytes to attempt to write</param>
         /// <returns>The number of bytes written</returns>
-        /// <remarks>The maximum number of bytes that can be written is the minimum of <paramref name="length"/> and <see cref="NodeBufferSize"/>.</remarks>        
+        /// <remarks>The maximum number of bytes that can be written is the minimum of <paramref name="length"/> and <see cref="NodeBufferSize"/>.</remarks>
         public virtual int Write(IntPtr source, int length, int timeout = 1000)
         {
             // Grab a node for writing
@@ -543,7 +539,7 @@ namespace SharedMemory
         /// <summary>
         /// Reserves a node for writing and then calls the provided <paramref name="writeFunc"/> to perform the write operation.
         /// </summary>
-        /// <param name="writeFunc">A function to used to write to the node's buffer. The first parameter is a pointer to the node's buffer. 
+        /// <param name="writeFunc">A function to used to write to the node's buffer. The first parameter is a pointer to the node's buffer.
         /// The provided function should return the number of bytes written.</param>
         /// <param name="timeout">The maximum number of milliseconds to wait for a node to become available for writing (default 1000ms)</param>
         /// <returns>The number of bytes written</returns>
@@ -759,7 +755,7 @@ namespace SharedMemory
         /// <summary>
         /// Reserves a node for reading and then calls the provided <paramref name="readFunc"/> to perform the read operation.
         /// </summary>
-        /// <param name="readFunc">A function used to read from the node's buffer. The first parameter is a pointer to the node's buffer. 
+        /// <param name="readFunc">A function used to read from the node's buffer. The first parameter is a pointer to the node's buffer.
         /// The provided function should return the number of bytes read.</param>
         /// <param name="timeout">The maximum number of milliseconds to wait for a node to become available for reading (default 1000ms)</param>
         /// <returns>The number of bytes read</returns>
